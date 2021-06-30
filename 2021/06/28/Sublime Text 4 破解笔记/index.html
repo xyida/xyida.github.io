@@ -514,45 +514,45 @@
 <p>于是第一时间下载体验，网上找了个补丁。不过用了一段时间后反弹了。又显示<strong>UNREGISTER</strong>未注册，而且保存文件弹注册窗口，可能是补丁作者没破解到位，对比了下破解的文件，发现破解者只是简单的单点爆破还有去除sublime服务器校验的域名而已。好久没玩win平台的crack，索性自己动手，拿来复习练手，下面正式开始！</p>
 <hr>
 <p>首先x64dbg载入sublime_text.exe主程序，shift+F9跑起来</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625102135467.png" alt="image-20210625102135467"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625102135467.png"></p>
 <p>先找个最明显的点入手，例如点击帮助-&gt;关于</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625102520753.png" alt="image-20210625102520753"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625102520753.png"></p>
 <p>关于信息这里会有注册状态，未注册显示Unregistered，那首先想到字符串大法！直接sublime exe模块搜索字符串</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625103401886.png" alt="image-20210625103401886"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625103401886.png"></p>
 <p>双击进去来到</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625103800536.png" alt="image-20210625103800536"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625103800536.png"></p>
 <p>可以看到字符串上方有个jmp跳过它，那很明显jmp下面的move ecx,228就是关于界面未注册赋值的入口，ctrl+r找下引用</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625104216646.png" alt="image-20210625104216646"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625104216646.png"></p>
 <p>找到一处双击进去来到</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625104348258.png" alt="image-20210625104348258"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625104348258.png"></p>
 <p>可以看到下方是Registered to … 注册给某某某，那很明显</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cmp byte ptr ds:[rsi],0</span><br><span class="line">je sublime_text_origin.13F7159BE</span><br></pre></td></tr></table></figure>
 
 <p><strong>cmp</strong>为关键比较<strong>je</strong>为关键跳转，cmp处下断点运行，再次点击关于，断下来到断点处，FPU中RSI寄存器值指向了地址<strong>13FFD5ED8</strong></p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625104953023.png" alt="image-20210625104953023"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625104953023.png"></p>
 <p>我们RSI右键-&gt;在内存中转到，查看内存</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625105309342.png" alt="image-20210625105309342"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625105309342.png"></p>
 <p>很明显这地方为0的时候标识未注册，把值改为1，运行之验证下结果。</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625105643257.png" alt="image-20210625105643257"></p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625105707029.png" alt="image-20210625105707029"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625105643257.png"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625105707029.png"></p>
 <p>果不其然Registered to Unlimited User License… </p>
 <p>经测试，此处的修改是全局的，应该就是某个管理类中的某个布尔值来控制。改完之后ctrl+s也不再弹出提示购买弹出，窗口标题也没有提示UNREGISTERED了。</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625112023998.png"><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625120001404.png"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625120001404.png"></p>
 <p>不得不说越优秀正规大型的软件往往采用比较优秀的架构设计模式，严格的面向对象风格编写。我记得以前一位长期做QQ魔改hack的大神曾赞叹过，QQ是他见过的架构最好，结构最清晰巴拉巴拉…的软件。翻译成人话就是：“非常好猜测编写的思路，非常好破解！”，哈哈哈哈哈。</p>
 <p>好，回归正题，先不着急修改。如果这里只对跳转做爆破的话，那只是打开关于界面显示已注册而已，其他功能限制或者有暗桩啥的都没有破解绕过。网上很多对sublime的破解往往是每个限制的点爆破一下，改改跳转，再加个域名屏蔽防止服务器校验。这样可能没破解完整导致某个条件下又反弹触发校验机制，或者导致功能缺陷。</p>
 <p>那我们的思路是，既然找到全局控制的点，那我们只需要找到一个合适的时机，对这个点强制写入值1，实现破解！</p>
 <p>那怎么找到这个时机点呢？很简单，我们对地址**13FFD5ED8(重新运行后为xxxxD5ED8)**下个硬件执行断点。经过测试，有一个比较好的时机点是：每次聚焦或者切换标签的时候都会触发更改窗口标题，我们知道，未注册的时候每次窗口标题变更后面都带有(UNREGISTERED)未注册的字样。所以每次聚焦或切换标题的时候都会触发校验。所以这里是个蛮不错的点。果真我切换标签的时候，硬件断点也命中，来到这里</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625154742473.png" alt="image-20210625154742473"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625154742473.png"></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cmp byte ptr ds:[rax],0</span><br><span class="line">sete cl</span><br></pre></td></tr></table></figure>
 
 <p>这里rax指向的就是全局控制是否注册字段的内存地址。这里和0比较了一下之后设置了ZF标志位。那就很简单了，直接操作这两句强制赋值rax指向地址的值为1即可。</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625155149442.png" alt="image-20210625155149442"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625155149442.png"></p>
 <p>运气很好，大小一致，接着第二句改下标志位，这里我们找一个空的没用的寄存器比如RCX来做等价替换</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625155434525.png" alt="image-20210625155434525"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625155434525.png"></p>
 <p>改完是</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625155737190.png" alt="image-20210625155737190"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625155737190.png"></p>
 <p>改完之，运行之，没问题完美破解，帮助-&gt;删除注册信息 都没用哈哈。ctrl+p补丁之。最后用<a target="_blank" rel="noopener" href="http://www.at4re.com/">AT4RE</a>撸个补丁。</p>
-<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625160247914.png" alt="image-20210625160247914"></p>
+<p><img src="/2021/06/28/Sublime%20Text%204%20%E7%A0%B4%E8%A7%A3%E7%AC%94%E8%AE%B0/image-20210625160247914.png"></p>
 <p>补丁就不放了，因为杀软会警告。也蛮简单的，可以自己动手破一个。</p>
 
                 
