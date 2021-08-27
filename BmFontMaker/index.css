@@ -1,0 +1,12 @@
+#drop_zone {
+  border: solid 2px red;
+  /* border-radius: 10px;
+  width: 96%;
+  margin: 0 auto;
+  flex-wrap: wrap; */
+}
+
+canvas {
+  border: dashed 1px #585858;
+  margin: 0 auto;
+}
