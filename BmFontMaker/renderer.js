@@ -167,10 +167,19 @@ button_save.addEventListener('click', event => {
     canvas_font.toBlob(function (blob) {
         saveAs(blob, fontName + ".png");
     });
-    let str = `info size=${fontSize} unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1 outline=0 common lineHeight=${fontSize} base=23 scaleW=${canvasWidth} scaleH=${canvasHeight} pages=1 packed=0 page id=0 file="${fontName}.png" chars count=${imageList.length}\n`;
+    // let str = `info size=${fontSize} unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1 outline=0 common lineHeight=${fontSize} base=23 scaleW=${canvasWidth} scaleH=${canvasHeight} pages=1 packed=0 page id=0 file="${fontName}.png" chars count=${imageList.length}\n`;
+    let str = `info face="${fontName}" size=${fontSize} bold=0 italic=0 charset="" unicode=0 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1
+common lineHeight=${fontSize} base=26 scaleW=${canvasWidth} scaleH=${canvasHeight} pages=1 packed=0 alphaChnl=1 redChnl=0 greenChnl=0 blueChnl=0
+page id=0 file="${fontName}.png"
+chars count=${imageList.length}\n`
+    let total_width = 0;
     imageList.forEach(img => {
         str += `char id=${img.char.charCodeAt(0)} x=${img.x} y=${img.y} width=${img.width} height=${img.height} xoffset=${img.xoffset} yoffset=${img.yoffset} xadvance=${img.xadvance} \n`;
+        total_width += img.width;
     })
+    let space_width = Math.ceil(total_width / imageList.length)
+    str += `char id=32 x=0 y=0 width=0 height=0 xoffset=0 yoffset=0 xadvance=${space_width} page=0 chnl=0 letter=" "\n`
+    str += `char id=9 x=0 y=0 width=0 height=0 xoffset=0 yoffset=0 xadvance=${space_width * 8} page=0 chnl=0 letter="  "\n`
     // console.log(str)
     let blob = new Blob([str], { type: "text/plain;charset=utf-8" });
     saveAs(blob, fontName + ".fnt");
